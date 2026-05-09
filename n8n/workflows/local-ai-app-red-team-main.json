@@ -1,0 +1,157 @@
+{
+  "name": "Local AI App Red Team - Production (Sequential)",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Audit Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://browser-worker:8000/browse",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "={{ $json.url || 'http://demo-app:3000' }}"
+            },
+            {
+              "name": "goal",
+              "value": "={{ $json.goal || 'Complete UX + QA Audit' }}"
+            }
+          ]
+        }
+      },
+      "name": "Browser Automation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.68.74:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"mistral\",\n  \"prompt\": \"Analyze UX issues: \" + JSON.stringify($json.main_audit),\n  \"stream\": false,\n  \"format\": \"json\"\n} }}",
+        "options": {}
+      },
+      "name": "UX Specialist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [550, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.68.74:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"mistral\",\n  \"prompt\": \"Analyze QA issues from these logs: \" + JSON.stringify($node[\"Browser Automation\"].json.main_audit.console_logs),\n  \"stream\": false,\n  \"format\": \"json\"\n} }}",
+        "options": {}
+      },
+      "name": "QA Specialist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.68.74:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"mistral\",\n  \"prompt\": \"Create a prioritized Markdown report. UX Findings: \" + $node[\"UX Specialist\"].json.response + \" QA Findings: \" + $node[\"QA Specialist\"].json.response,\n  \"stream\": false\n} }}",
+        "options": {}
+      },
+      "name": "Fix Planner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://browser-worker:8000/save-report",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "run_id",
+              "value": "={{ $node[\"Browser Automation\"].json.run_id }}"
+            },
+            {
+              "name": "report_markdown",
+              "value": "={{ $json.response }}"
+            }
+          ]
+        }
+      },
+      "name": "Export Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1300, 300]
+    }
+  ],
+  "connections": {
+    "Manual Audit Trigger": {
+      "main": [
+        [
+          {
+            "node": "Browser Automation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Browser Automation": {
+      "main": [
+        [
+          {
+            "node": "UX Specialist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UX Specialist": {
+      "main": [
+        [
+          {
+            "node": "QA Specialist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QA Specialist": {
+      "main": [
+        [
+          {
+            "node": "Fix Planner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fix Planner": {
+      "main": [
+        [
+          {
+            "node": "Export Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

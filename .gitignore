@@ -1,0 +1,24 @@
+# IDEs
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.env
+
+# Node / React
+node_modules/
+dist/
+.eslintcache
+
+# Project Specific
+reports/*/
+!reports/.gitkeep
+
+# Docker
+.docker/

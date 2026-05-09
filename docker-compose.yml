@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: redteam-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: redteam-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-secret}
+      - N8N_USER_MANAGEMENT_DISABLED=${N8N_USER_MANAGEMENT_DISABLED:-true}
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./reports:/home/node/reports
+    depends_on:
+      - ollama
+
+  browser-worker:
+    build: ./browser-worker
+    container_name: redteam-browser-worker
+    restart: unless-stopped
+    ports:
+      - "${BROWSER_WORKER_PORT:-8000}:8000"
+    volumes:
+      - ./reports:/app/reports
+      - ./browser-worker/app:/app/app
+    environment:
+      - REPORTS_DIR=/app/reports
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  demo-app:
+    build: ./demo-app
+    container_name: redteam-demo-app
+    restart: unless-stopped
+    ports:
+      - "${DEMO_APP_PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  ollama_data:
+  n8n_data:
