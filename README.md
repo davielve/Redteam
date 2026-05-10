@@ -40,7 +40,7 @@ Systemet er bygget som en microservice-arkitektur i Docker:
 
 3. Hent de nødvendige modeller til din Ollama-server:
    ```bash
-   ollama pull mistral
+   ollama pull mistral && ollama pull llama3 && ollama pull llava
    ```
 
 4. Konfiguration af n8n:
