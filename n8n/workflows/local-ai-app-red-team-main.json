@@ -34,7 +34,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://192.168.68.74:11434/api/generate",
+        "url": "http://ollama:11434/api/generate",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  \"model\": \"mistral\",\n  \"prompt\": \"Analyze UX issues: \" + JSON.stringify($json.main_audit),\n  \"stream\": false,\n  \"format\": \"json\"\n} }}",
@@ -48,7 +48,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://192.168.68.74:11434/api/generate",
+        "url": "http://ollama:11434/api/generate",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  \"model\": \"mistral\",\n  \"prompt\": \"Analyze QA issues from these logs: \" + JSON.stringify($node[\"Browser Automation\"].json.main_audit.console_logs),\n  \"stream\": false,\n  \"format\": \"json\"\n} }}",
@@ -62,7 +62,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://192.168.68.74:11434/api/generate",
+        "url": "http://ollama:11434/api/generate",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  \"model\": \"mistral\",\n  \"prompt\": \"Create a prioritized Markdown report. UX Findings: \" + $node[\"UX Specialist\"].json.response + \" QA Findings: \" + $node[\"QA Specialist\"].json.response,\n  \"stream\": false\n} }}",
